@@ -4,11 +4,18 @@
 `pij my-program.exe arguments...`
 
 ## Purpose
-Use it when you want to run `my-program.exe` in a batch file, but
-my-program.exe starts another process(es) and returns before they
-complete, which is not what you want: batch file should continue only
-when all additional processes also exit. PIJ runs initial process in a
-job and waits for this job to become empty, before exiting.
+
+Ensure the whole subtree of processes has completed before the batch
+file continues.
+
+Let's assume that `my-program.exe` does something useful unattended,
+making it usable from batch files. However, its initial process just
+starts another process to do the real thing, and then exits, not
+waiting for that another process to finish. `START /W` won't help in
+this case, as it will return as soon as the initial process exits.
+
+PIJ runs the whole subtree of processes-running-processes in a single
+job and waits for this job to become empty before exiting.
 
 ## Result code (ERRORLEVEL)
 PIJ terminates with non-zero exit code if there's some problem during
