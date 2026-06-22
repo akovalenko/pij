@@ -10,9 +10,14 @@ complete, which is not what you want: batch file should continue only
 when all additional processes also exit. PIJ runs initial process in a
 job and waits for this job to become empty, before exiting.
 
-PIJ terminates with non-zero exit code if there's some problem during
-initial process creation or waiting phase. Zero exit code is returned
-when the last process in the job exits.
+PIJ exit codes:
+  0   the initial process exited with code 0 (success);
+  1   a PIJ-internal error (process creation or the waiting phase failed);
+  2   the initial process exited with a non-zero code.
+
+Code 2 covers any non-zero exit of the initial process - the child's
+exact code is not propagated, since it could itself be 1 and would then
+be indistinguishable from a PIJ-internal error.
 
 All arguments are passed to CreateProcess'es lpCommandLine, hence some
 restrictions on what you can start: it should be a real EXE file

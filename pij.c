@@ -134,7 +134,8 @@ int main(int argc, char*argv[])
 			  &pi)) {
     Fail("CreateProcess");
   }
-  CloseHandle(pi.hProcess);
+  // Keep pi.hProcess open so we can read the initial process's exit code
+  // after the job drains; the thread handle is no longer needed.
   CloseHandle(pi.hThread);
 
 
@@ -156,6 +157,16 @@ int main(int argc, char*argv[])
       break;
     }
   }
+  // The job is empty, so the initial process has certainly exited and its
+  // handle (kept open above) still holds the exit code.  Map it to PIJ's
+  // result convention: 0 = initial succeeded, 2 = initial failed (non-zero).
+  // PIJ's own errors use exit code 1 via Fail(), so 1 always means a
+  // PIJ-internal problem and never collides with the child's code.
+  DWORD exitCode;
+  if (!GetExitCodeProcess(pi.hProcess, &exitCode)) {
+    Fail("GetExitCodeProcess");
+  }
+  CloseHandle(pi.hProcess);
   CloseHandle(hJob);
-  return 0;
+  return exitCode == 0 ? 0 : 2;
 }
